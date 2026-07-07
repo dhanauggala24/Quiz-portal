@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: quiz-portal-backend
+    env: node
+    plan: free
+    buildCommand: npm --prefix backend install
+    startCommand: npm --prefix backend start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FACULTY_USERNAME
+        sync: false
+      - key: FACULTY_PASSWORD
+        sync: false
+      - key: PORT
+        value: 10000
+
+  - type: static
+    name: quiz-portal-frontend
+    buildCommand: npm --prefix frontend install && npm --prefix frontend run build
+    staticPublishPath: frontend/build
+    routes:
+      - path: /*
+        destination: /index.html

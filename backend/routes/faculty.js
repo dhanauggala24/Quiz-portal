@@ -9,8 +9,9 @@ router.get('/students', authMiddleware, async (req, res) => {
   try {
     const students = await Student.find().sort({ submittedAt: -1 });
     res.json(students);
-  } catch {
-    res.status(500).json({ message: 'Error fetching students' });
+  } catch (err) {
+    console.error('Fetch students error:', err.message);
+    res.status(500).json({ message: 'Error fetching students. Please try again.' });
   }
 });
 
@@ -26,8 +27,9 @@ router.get('/stats', authMiddleware, async (req, res) => {
       { $group: { _id: null, avg: { $avg: '$quizScore' } } }
     ]);
     res.json({ total, completed, passed, avgScore: avgScore[0]?.avg || 0 });
-  } catch {
-    res.status(500).json({ message: 'Error fetching stats' });
+  } catch (err) {
+    console.error('Fetch stats error:', err.message);
+    res.status(500).json({ message: 'Error fetching statistics. Please try again.' });
   }
 });
 

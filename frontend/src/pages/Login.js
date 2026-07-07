@@ -17,6 +17,10 @@ export default function Login() {
     setLoading(true); setError('');
     try {
       const { data } = await axios.post('/api/auth/student-login', { regdNo: regdNo.trim() });
+      if (!data.token) {
+        setError('Invalid response from server (no token)');
+        return;
+      }
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', 'student');
       localStorage.setItem('regdNo', data.regdNo);
@@ -26,7 +30,9 @@ export default function Login() {
         navigate('/student/register');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      const msg = err.response?.data?.message || err.response?.statusText || err.message || 'Login failed';
+      console.error('Student login error:', { status: err.response?.status, msg, err });
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -37,11 +43,17 @@ export default function Login() {
     setLoading(true); setError('');
     try {
       const { data } = await axios.post('/api/auth/faculty-login', { username, password });
+      if (!data.token) {
+        setError('Invalid response from server (no token)');
+        return;
+      }
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', 'faculty');
       navigate('/faculty/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials');
+      const msg = err.response?.data?.message || err.response?.statusText || err.message || 'Invalid credentials';
+      console.error('Faculty login error:', { status: err.response?.status, msg, err });
+      setError(msg);
     } finally {
       setLoading(false);
     }

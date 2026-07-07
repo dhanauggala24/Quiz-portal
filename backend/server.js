@@ -6,15 +6,33 @@ const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'https://quiz-portal-sne4.onrender.com'
+].filter(Boolean);
 
 app.use(cors({
-  origin: true,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || /^https?:\/\/localhost(:\d+)?$/.test(origin) || /^https:\/\/.+\.vercel\.app$/.test(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -50,7 +68,7 @@ mongoose.connect(process.env.MONGO_URI)
           }
         }
       }
-      console.log('\nFaculty Login: username=faculty | password=1234567890\n');
+      console.log('\nFaculty login is configured through environment variables.\n');
     });
   })
   .catch(err => {
